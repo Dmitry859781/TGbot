@@ -36,22 +36,22 @@ public class HelpCommandTest {
     @Test
     void shouldListAllCommands_WhenNoArgsProvided() {
         // Given
-        Command startCmd = mock(Command.class);
-        when(startCmd.getCommandName()).thenReturn("start");
-        when(startCmd.getDescription()).thenReturn("Начать взаимодействие");
+        Command authorsCmd = mock(Command.class);
+        when(authorsCmd.getCommandName()).thenReturn("authors");
+        when(authorsCmd.getDescription()).thenReturn("Информация об авторах");
 
         Command aboutCmd = mock(Command.class);
         when(aboutCmd.getCommandName()).thenReturn("about");
         when(aboutCmd.getDescription()).thenReturn("Информация о боте");
 
-        commandRegistry.put("start", startCmd);
+        commandRegistry.put("authors", authorsCmd);
         commandRegistry.put("about", aboutCmd);
 
         // When
         helpCommand.execute(bot, message, new String[]{});
 
         // Then
-        String expected = "Доступные команды:\n/start — Начать взаимодействие\n/about — Информация о боте\n";
+        String expected = "Доступные команды:\n/about — Информация о боте\n/authors — Информация об авторах\n";
         verify(bot).sendMessage(eq(12345L), eq(expected));
     }
 
