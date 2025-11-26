@@ -1,7 +1,9 @@
-package bot.commands;
+package bot.commands.notes;
 
 import bot.TelegramBot;
-import bot.dataBaseService.NoteService;
+import bot.Note.NoteService;
+import bot.commands.Command;
+
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class AddNoteCommand implements Command{

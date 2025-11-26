@@ -1,7 +1,9 @@
 package bot.commands;
 
 import bot.TelegramBot;
-import bot.dataBaseService.NoteService;
+import bot.Note.NoteService;
+import bot.commands.notes.RemoveNoteCommand;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

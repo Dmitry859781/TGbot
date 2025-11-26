@@ -3,6 +3,11 @@ package bot.commands;
 import java.util.HashMap;
 import java.util.Map;
 
+import bot.commands.notes.AddNoteCommand;
+import bot.commands.notes.EditNoteCommand;
+import bot.commands.notes.RemoveNoteCommand;
+import bot.commands.notes.ShowNoteCommand;
+
 public class CommandRegistry {
     private static final Map<String, Command> COMMANDS = new HashMap<>();
 

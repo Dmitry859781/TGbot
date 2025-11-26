@@ -1,31 +1,33 @@
-package bot.commands;
+package bot.commands.notes;
 
 import bot.TelegramBot;
-import bot.dataBaseService.NoteService;
+import bot.Note.NoteService;
+import bot.commands.Command;
 
 import java.sql.SQLException;
 import java.util.List;
+
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-public class RemoveNoteCommand implements Command {
-	
+public class ShowNoteCommand implements Command{
+
 	@Override
     public String getCommandName() {
-        return "removeNote";
+        return "showNote";
     }
 
     @Override
     public String getDescription() {
-        return "Удалить заметку";
+        return "Показать заметку";
     }
 
     @Override
     public String getUsage() {
-        return "/removeNote";
+        return "/showNote";
     }
     
     private final NoteService noteService = new NoteService();
-
+    
 	@Override
 	public void execute(TelegramBot bot, Message message, String[] args) {
 		Long chatId = message.getChatId();
@@ -33,14 +35,14 @@ public class RemoveNoteCommand implements Command {
 			List<String> noteNames = noteService.getUserNotes(chatId);
 			
 			//Шаг 1: Выводим список заметок
-			if (noteNames.isEmpty()) {
+			if (noteNames.isEmpty()) {  // ← исправлено: было !noteNames.isEmpty()
                 bot.sendMessage(chatId, "У вас пока нет заметок. Добавьте первую с помощью /addNote");
                 return;
 			}
 			
             // StringBuilder - изменяемый String
         	// Заменить на StringBuffer при добавлении многопоточности
-        	StringBuilder response = new StringBuilder("Какую заметку хотите удалить?\n");
+        	StringBuilder response = new StringBuilder("Какую заметку хотите посмотреть?\n");
             for (int i = 0; i < noteNames.size(); i++) {
                 response.append(i + 1).append(". ").append(noteNames.get(i)).append("\n");
             }
@@ -55,16 +57,17 @@ public class RemoveNoteCommand implements Command {
             	
             	String cleanName = noteName.trim();
             	
-            	//Шаг 2: Удаляем заметку
+            	//Шаг 2: Выводим текст заметки
         		try {
-					noteService.removeNoteFromDB(chatId, noteName);
-					bot.sendMessage(chatId, "Заметка \"" + cleanName + "\" удалена!");
+					bot.sendMessage(chatId, "Заметка \"" + cleanName + "\".");
+					bot.sendMessage(chatId, noteService.getNote(chatId, noteName));
 				} catch (SQLException e) {
-					bot.sendMessage(chatId, "Не удалось удалить заметку. Попробуйте позже.");
+					bot.sendMessage(chatId, "Не удалось получить заметку. Попробуйте позже.");
 				}
             });
             
-		} catch (Exception e) {
+		} catch (SQLException e) {
+            e.printStackTrace();
             bot.sendMessage(chatId, "Не удалось вывести список заметок. Попробуйте позже.");
 		}
 	}

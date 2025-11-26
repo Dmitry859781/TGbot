@@ -1,5 +1,7 @@
 package bot.commands;
 
+import java.sql.SQLException;
+
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import bot.TelegramBot;

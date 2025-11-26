@@ -1,4 +1,4 @@
-package bot.commands;
+package bot.commands.notes;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -6,7 +6,8 @@ import java.util.List;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import bot.TelegramBot;
-import bot.dataBaseService.NoteService;
+import bot.Note.NoteService;
+import bot.commands.Command;
 
 public class EditNoteCommand implements Command{
 

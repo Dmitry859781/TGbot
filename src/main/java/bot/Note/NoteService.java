@@ -1,4 +1,4 @@
-package bot.dataBaseService;
+package bot.Note;
 
 import java.sql.*;
 import java.util.*;
