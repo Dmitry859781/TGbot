@@ -5,7 +5,7 @@ import java.util.*;
 
 public class NoteService {
 	
-	private static final String DB_URL = "jdbc:sqlite:database/Note.db";
+	private final String DB_URL;
 	
 	// Для драйверов JDBC ниже 4
 	static {
@@ -15,6 +15,44 @@ public class NoteService {
 	        throw new RuntimeException("SQLite JDBC driver not found", e);
 	    }
 	}
+	
+	// Основной конструктор для продакшена (использует Note.db)
+    public NoteService() {
+        this("jdbc:sqlite:database/Note.db");
+    }
+
+    // Конструктор для тестов или других БД
+    public NoteService(String dbUrl) {
+        this.DB_URL = dbUrl;
+        initializeDatabase();
+    }
+    // Создаёт таблицу при первом запуске не основного конструктора
+    private void initializeDatabase() {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+            Statement stmt = conn.createStatement()) {
+        	
+            // Убеждаемся, что папка существует
+            String dbPath = DB_URL.replace("jdbc:sqlite:", "");
+            java.nio.file.Path dbDir = java.nio.file.Paths.get(dbPath).getParent();
+            if (dbDir != null && !java.nio.file.Files.exists(dbDir)) {
+                java.nio.file.Files.createDirectories(dbDir);
+            }
+
+        	System.out.println("Создаём таблицу...");
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS notes (
+                    User_id INTEGER NOT NULL,
+                    Note_name TEXT NOT NULL,
+                    Text TEXT NOT NULL,
+                    PRIMARY KEY (user_id, note_name)
+                )
+                """);
+            System.out.println("Таблица создана!");
+        } catch (Exception e) {
+        	System.err.println("Ошибка при инициализации БД:");
+            throw new RuntimeException("Ошибка в инизиализации NoteService", e);
+        }
+    }
 	
 	// Добавление заметки по userId и noteName, primarykey(userId, noteName)
     public void addNoteToDB(Long userId, String noteName, String text) throws SQLException {
