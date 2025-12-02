@@ -22,6 +22,10 @@ public class Reminder {
         return new Gson().fromJson(propertiesJson, clazz);
     }
     
+    public Long getUserId() {
+    	return userId;
+    }
+    
     public ReminderType getType() {
     	return type;
     }

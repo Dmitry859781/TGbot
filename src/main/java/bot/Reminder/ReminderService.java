@@ -3,14 +3,22 @@ package bot.Reminder;
 import bot.Reminder.Reminder;
 import bot.Reminder.once.OnceProperties;
 import bot.Reminder.recurring.RecurringProperties;
+import bot.Reminder.recurring.ScheduleItem;
+
 import com.google.gson.Gson;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 public class ReminderService {
 
@@ -28,8 +36,9 @@ public class ReminderService {
     // Добавление одноразового напоминания primarykey(userId, reminderName)
     public void addOnceReminder(Long userId, String reminderName, String text, LocalDateTime remindAt) {
         OnceProperties props = new OnceProperties();
-        // Всегда сохраняем в UTC как строку
-        props.remind_at = remindAt.atOffset(ZoneOffset.UTC)
+     // Конвертируем локальное время сервера в UTC (Переписать для разных временных зон)
+        props.remind_at = remindAt.atZone(ZoneId.systemDefault())
+                .withZoneSameInstant(ZoneOffset.UTC)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         addReminder(userId, reminderName, text, ReminderType.ONCE, props);
@@ -107,6 +116,66 @@ public class ReminderService {
             }
         }
         return names;
+    }
+    
+    public List<Reminder> getDueReminders() {
+        List<Reminder> dueReminders = new ArrayList<>();
+        LocalDateTime nowUtc = LocalDateTime.now(ZoneOffset.UTC);
+        String todayIso = nowUtc.getDayOfWeek().toString(); // "MON", "TUE", ...
+
+        String timeNow = nowUtc.format(DateTimeFormatter.ofPattern("HH:mm"));
+        
+        //Для дебага
+    	System.out.println("Текущее UTC-время: " + nowUtc);
+    	System.out.println("Сегодня: " + todayIso + ", время: " + timeNow);
+    	
+        try {
+            // Получаем все напоминания
+            String sql = "SELECT user_id, reminder_name, text, type, properties FROM reminders";
+            try (Connection conn = DriverManager.getConnection(DB_URL);
+                 PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+
+                while (rs.next()) {
+                    Reminder reminder = new Reminder(
+                        rs.getLong("user_id"),
+                        rs.getString("reminder_name"),
+                        rs.getString("text"),
+                        ReminderType.valueOf(rs.getString("type")),
+                        rs.getString("properties")
+                    );
+
+                    boolean shouldNotify = false;
+
+                    if (ReminderType.ONCE.equals(reminder.getType())) {
+                        OnceProperties props = reminder.getPropertiesAs(OnceProperties.class);
+                        LocalDateTime remindAt = LocalDateTime.parse(props.remind_at,
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                        if (!remindAt.isAfter(nowUtc)) {
+                            shouldNotify = true;
+                            // Удалим после отправки (Возможно добавлю флаг отменяющий это)
+                        }
+                    } else if (ReminderType.RECURRING.equals(reminder.getType())) {
+                        RecurringProperties props = reminder.getPropertiesAs(RecurringProperties.class);
+                        if (props.schedule != null) {
+                            for (ScheduleItem item : props.schedule) {
+                                if (todayIso.equals(item.day) && timeNow.equals(item.time)) {
+                                    shouldNotify = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (shouldNotify) {
+                        dueReminders.add(reminder);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return dueReminders;
     }
 
     // Вспомогательный метод для парсинга свойств

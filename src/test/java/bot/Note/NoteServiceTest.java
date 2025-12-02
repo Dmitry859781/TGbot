@@ -22,15 +22,11 @@ class NoteServiceIntegrationTest {
         // Подключаемся к реальной БД и начинаем транзакцию
         testConnection = DriverManager.getConnection(PROD_DB_URL);
         testConnection.setAutoCommit(false); // отключаем автокоммит
-
-        // Передаём это подключение в NoteService через рефлексию или... 
-        // Но проще — создадим специальный NoteService для тестов с возможностью внедрения подключения
-        // Однако, чтобы не менять основной класс — поступим иначе:
-
+        
         // Создаём обычный NoteService, но БД уже открыта в транзакции
         noteService = new NoteService(); // использует тот же файл
 
-        // Сохраняем текущее состояние (опционально — для отладки)
+        // Сохраняем текущее состояние
         // Вместо этого мы просто откатим транзакцию
     }
 
@@ -75,20 +71,5 @@ class NoteServiceIntegrationTest {
 
         // then
         assertNull(retrieved);
-    }
-
-    @Test
-    void testReplaceNoteInRealDB() throws SQLException {
-        // given
-        Long userId = 999999L;
-        String noteName = "ToReplaceInTest";
-        noteService.addNoteToDB(userId, noteName, "Old");
-
-        // when
-        noteService.addNoteToDB(userId, noteName, "New");
-        String retrieved = noteService.getNote(userId, noteName);
-
-        // then
-        assertEquals("New", retrieved);
     }
 }

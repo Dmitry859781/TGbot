@@ -1,12 +1,21 @@
 package bot;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import bot.Reminder.Reminder;
+import bot.Reminder.ReminderService;
+import bot.Reminder.ReminderType;
 import bot.commands.Command;
 import bot.commands.InputHandler;
 import bot.commands.CommandRegistry;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class TelegramBot extends TelegramLongPollingBot {
@@ -67,6 +76,46 @@ public class TelegramBot extends TelegramLongPollingBot {
             } else {
                 sendMessage(message.getChatId(), "Неизвестная команда. Введите /help для списка.");
             }
+        }
+    }
+    
+    // Короче, Напоминания, которые надо выслать и бла бла бла
+    private final ReminderService reminderService = new ReminderService();
+    private ScheduledExecutorService scheduler;
+
+    public void startReminderChecker() {
+    	System.out.println("Запущена проверка напоминаний");
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(this::checkAndSendReminders, 0, 1, TimeUnit.MINUTES);
+    }
+
+    private void checkAndSendReminders() {
+    	System.out.println("Запущен checkAndSend");
+        try {
+            List<Reminder> due = reminderService.getDueReminders();
+            System.out.println("Найдено напоминаний для отправки: " + due.size());
+            for (Reminder reminder : due) {
+                // Отправляем уведомление    вкусовщина: (Возможно стоит просто текст напоминания высылать)
+                String message = "Напоминание: \n" + reminder.getText();
+                execute(SendMessage.builder()
+                    .chatId(reminder.getUserId().toString())
+                    .text(message)
+                    .build());
+
+                // Если ONCE — удаляем после отправки
+                if (ReminderType.ONCE.equals(reminder.getType())) {
+                    reminderService.removeReminder(reminder.getUserId(), reminder.getName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Остановка при завершении
+    public void stopReminderChecker() {
+        if (scheduler != null) {
+            scheduler.shutdown();
         }
     }
 
