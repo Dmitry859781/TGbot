@@ -7,6 +7,12 @@ import bot.commands.notes.AddNoteCommand;
 import bot.commands.notes.EditNoteCommand;
 import bot.commands.notes.RemoveNoteCommand;
 import bot.commands.notes.ShowNoteCommand;
+import bot.commands.reminders.AddOnceReminderCommand;
+import bot.commands.reminders.AddRecurringReminderCommand;
+import bot.commands.reminders.EditOnceReminderCommand;
+import bot.commands.reminders.EditRecurringReminderCommand;
+import bot.commands.reminders.RemoveReminderCommand;
+import bot.commands.reminders.ShowReminderCommand;
 
 public class CommandRegistry {
     private static final Map<String, Command> COMMANDS = new HashMap<>();
@@ -15,17 +21,33 @@ public class CommandRegistry {
         // Регистрируем команды
         AboutCommand about = new AboutCommand();
         AuthorsCommand authors = new AuthorsCommand();
+        //Note
         AddNoteCommand addNote = new AddNoteCommand();
         RemoveNoteCommand removeNote = new RemoveNoteCommand();
         EditNoteCommand editNote = new EditNoteCommand();
         ShowNoteCommand showNote = new ShowNoteCommand();
+        //Reminder
+        AddOnceReminderCommand addOnceReminder = new AddOnceReminderCommand();
+        EditOnceReminderCommand editOnceReminder = new EditOnceReminderCommand();
+        AddRecurringReminderCommand addRecurringReminder = new AddRecurringReminderCommand();
+        EditRecurringReminderCommand editRecurringReminder = new EditRecurringReminderCommand();
+        RemoveReminderCommand removeReminder = new RemoveReminderCommand();
+        ShowReminderCommand showReminder = new ShowReminderCommand();
         
         COMMANDS.put(about.getCommandName(), about);
         COMMANDS.put(authors.getCommandName(), authors);
+        //Note
         COMMANDS.put(addNote.getCommandName(), addNote);
         COMMANDS.put(removeNote.getCommandName(), removeNote);
         COMMANDS.put(editNote.getCommandName(), editNote);
         COMMANDS.put(showNote.getCommandName(), showNote);
+        //Reminder
+        COMMANDS.put(addOnceReminder.getCommandName(), addOnceReminder);
+        COMMANDS.put(editOnceReminder.getCommandName(), editOnceReminder);
+        COMMANDS.put(addRecurringReminder.getCommandName(), addRecurringReminder);
+        COMMANDS.put(editRecurringReminder.getCommandName(), editRecurringReminder);
+        COMMANDS.put(removeReminder.getCommandName(), removeReminder);
+        COMMANDS.put(showReminder.getCommandName(), showReminder);
 
         // Help-команда должна быть зарегистрирована ПОСЛЕДНЕЙ, чтобы видеть все команды
         HelpCommand help = new HelpCommand(COMMANDS);
