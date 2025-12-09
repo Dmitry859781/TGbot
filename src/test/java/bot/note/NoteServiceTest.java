@@ -1,6 +1,8 @@
-package bot.Note;
+package bot.note;
 
 import org.junit.jupiter.api.*;
+
+import bot.note.NoteService;
 
 import java.io.IOException;
 import java.nio.file.Files;

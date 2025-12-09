@@ -2,7 +2,7 @@ package bot.commands.reminders;
 
 import bot.TelegramBot;
 import bot.commands.Command;
-import bot.Reminder.ReminderService;
+import bot.reminder.ReminderService;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 

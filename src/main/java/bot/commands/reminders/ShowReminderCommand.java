@@ -2,14 +2,19 @@ package bot.commands.reminders;
 
 import bot.TelegramBot;
 import bot.commands.Command;
-import bot.Reminder.Reminder;
-import bot.Reminder.ReminderService;
-import bot.Reminder.ReminderType;
-import bot.Reminder.once.OnceProperties;
-import bot.Reminder.recurring.RecurringProperties;
+import bot.reminder.Reminder;
+import bot.reminder.ReminderService;
+import bot.reminder.ReminderType;
+import bot.reminder.once.OnceProperties;
+import bot.reminder.recurring.RecurringProperties;
+import bot.timezone.UserTimezoneService;
+
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +37,7 @@ public class ShowReminderCommand implements Command {
     }
 
     private final ReminderService reminderService = new ReminderService();
+    private final UserTimezoneService timezoneService = new UserTimezoneService();
 
     @Override
     public void execute(TelegramBot bot, Message message, String[] args) {
@@ -133,5 +139,21 @@ public class ShowReminderCommand implements Command {
             case "SUN" -> "Вс";
             default -> "?";
         };
+    }
+    private ZoneId getUserZone(TelegramBot bot, Long chatId) {
+        try {
+            Integer offsetHours = timezoneService.getTimezone(chatId);
+            if (offsetHours == null) {
+                bot.sendMessage(chatId, "Часовой пояс не указан. Будет использован системный "+ ZoneId.systemDefault() +". \n" + 
+                                "Используйте /setOrEditTimezone для установки или изменения часового пояса");
+                return ZoneId.systemDefault();
+            } else {
+                bot.sendMessage(chatId, "Ваш часовой пояс: " + offsetHours);
+                return ZoneOffset.ofHours(offsetHours);
+            }
+        } catch (SQLException e) {
+            bot.sendMessage(chatId, "Не удалось получить часовой пояс. Будет использован системный " + ZoneId.systemDefault());
+            return ZoneId.systemDefault();
+        }
     }
 }

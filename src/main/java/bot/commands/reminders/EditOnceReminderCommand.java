@@ -2,15 +2,18 @@ package bot.commands.reminders;
 
 import bot.TelegramBot;
 import bot.commands.Command;
-import bot.Reminder.Reminder;
-import bot.Reminder.ReminderService;
-import bot.Reminder.ReminderType;
-import bot.Reminder.once.OnceProperties;
+import bot.reminder.Reminder;
+import bot.reminder.ReminderService;
+import bot.reminder.ReminderType;
+import bot.reminder.once.OnceProperties;
+import bot.timezone.UserTimezoneService;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -34,11 +37,13 @@ public class EditOnceReminderCommand implements Command {
     }
 
     private final ReminderService reminderService = new ReminderService();
+    private final UserTimezoneService timezoneService = new UserTimezoneService();
 
     @Override
     public void execute(TelegramBot bot, Message message, String[] args){
         Long chatId = message.getChatId();
-
+        ZoneId userZone = getUserZone(bot, chatId);
+        
         try {
             List<String> reminderNames = reminderService.getUserReminderNames(chatId);
             reminderNames.removeIf(name -> {
@@ -148,7 +153,7 @@ public class EditOnceReminderCommand implements Command {
                         try {
                             reminderService.removeReminder(chatId, reminderName);
                             LocalDateTime finalTime = (newTime != null) ? newTime : oldTime;
-                            reminderService.addOnceReminder(chatId, reminderName, newText, finalTime);
+                            reminderService.addOnceReminder(chatId, reminderName, newText, finalTime, userZone);
                             bot.sendMessage(chatId, "Напоминание \"" + reminderName + "\" обновлено!");
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -161,6 +166,23 @@ public class EditOnceReminderCommand implements Command {
         } catch (Exception e) {
             e.printStackTrace();
             bot.sendMessage(chatId, "Не удалось загрузить список напоминаний.");
+        }
+    }
+    //Для использования в лямбдах
+    private ZoneId getUserZone(TelegramBot bot, Long chatId) {
+        try {
+            Integer offsetHours = timezoneService.getTimezone(chatId);
+            if (offsetHours == null) {
+                bot.sendMessage(chatId, "Часовой пояс не указан. Будет использован системный "+ ZoneId.systemDefault() +". \n" + 
+                                "Используйте /setOrEditTimezone для установки или изменения часового пояса");
+                return ZoneId.systemDefault();
+            } else {
+                bot.sendMessage(chatId, "Ваш часовой пояс: " + offsetHours);
+                return ZoneOffset.ofHours(offsetHours);
+            }
+        } catch (SQLException e) {
+            bot.sendMessage(chatId, "Не удалось получить часовой пояс. Будет использован системный " + ZoneId.systemDefault());
+            return ZoneId.systemDefault();
         }
     }
 }

@@ -6,8 +6,8 @@ import java.util.List;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import bot.TelegramBot;
-import bot.Note.NoteService;
 import bot.commands.Command;
+import bot.note.NoteService;
 
 public class EditNoteCommand implements Command{
 

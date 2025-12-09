@@ -7,11 +7,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import bot.Reminder.Reminder;
-import bot.Reminder.ReminderService;
-import bot.Reminder.ReminderType;
 import bot.commands.Command;
 import bot.commands.InputHandler;
+import bot.reminder.Reminder;
+import bot.reminder.ReminderService;
+import bot.reminder.ReminderType;
 import bot.commands.CommandRegistry;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -96,7 +96,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             System.out.println("Найдено напоминаний для отправки: " + due.size());
             for (Reminder reminder : due) {
                 // Отправляем уведомление    вкусовщина: (Возможно стоит просто текст напоминания высылать)
-                String message = "Напоминание: \n" + reminder.getText();
+                String message = "Напоминание: " + reminder.getName() + "\n" + reminder.getText();
                 execute(SendMessage.builder()
                     .chatId(reminder.getUserId().toString())
                     .text(message)

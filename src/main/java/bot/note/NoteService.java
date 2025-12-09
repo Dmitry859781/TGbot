@@ -1,4 +1,4 @@
-package bot.Note;
+package bot.note;
 
 import java.sql.*;
 import java.util.*;

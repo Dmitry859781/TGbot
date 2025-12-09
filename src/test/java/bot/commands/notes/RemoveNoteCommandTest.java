@@ -1,9 +1,9 @@
 package bot.commands.notes;
 
 import bot.TelegramBot;
-import bot.Note.NoteService;
 import bot.commands.InputHandler;
 import bot.commands.notes.RemoveNoteCommand;
+import bot.note.NoteService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

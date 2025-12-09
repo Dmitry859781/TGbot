@@ -2,11 +2,11 @@ package bot.commands.reminders;
 
 import bot.TelegramBot;
 import bot.commands.Command;
-import bot.Reminder.Reminder;
-import bot.Reminder.ReminderService;
-import bot.Reminder.ReminderType;
-import bot.Reminder.recurring.RecurringProperties;
-import bot.Reminder.recurring.ScheduleItem;
+import bot.reminder.Reminder;
+import bot.reminder.ReminderService;
+import bot.reminder.ReminderType;
+import bot.reminder.recurring.RecurringProperties;
+import bot.reminder.recurring.ScheduleItem;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -152,8 +152,13 @@ public class EditRecurringReminderCommand implements Command {
                         if ("-".equals(newTimeInput.trim())) {
                             newTime = extractTime(oldProps);
                         } else {
-                            String cleanTime = newTimeInput.trim();
-                            if (!cleanTime.matches("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+                        	String cleanTimeInput = newTimeInput.trim();
+                            String cleanTime;
+                            try {
+                                // Нормализуем время: "9:00" → "09:00", "15:5" → "15:05"
+                                java.time.LocalTime time = java.time.LocalTime.parse(cleanTimeInput);
+                                cleanTime = time.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                            } catch (java.time.format.DateTimeParseException e) {
                                 bot.sendMessage(chatId, "Неверный формат времени. Используйте: HH:mm (например, 09:00)");
                                 return;
                             }
@@ -191,10 +196,10 @@ public class EditRecurringReminderCommand implements Command {
                             try {
                                 reminderService.removeReminder(chatId, reminderName);
                                 reminderService.addRecurringReminder(chatId, reminderName, newText, newProps);
-                                bot.sendMessage(chatId, "✅ Напоминание \"" + reminderName + "\" обновлено!");
+                                bot.sendMessage(chatId, "Напоминание \"" + reminderName + "\" обновлено!");
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                bot.sendMessage(chatId, "❌ Ошибка при обновлении напоминания.");
+                                bot.sendMessage(chatId, "Ошибка при обновлении напоминания.");
                             }
                         });
                     });
@@ -203,7 +208,7 @@ public class EditRecurringReminderCommand implements Command {
 
         } catch (Exception e) {
             e.printStackTrace();
-            bot.sendMessage(chatId, "❌ Не удалось загрузить список напоминаний.");
+            bot.sendMessage(chatId, "Не удалось загрузить список напоминаний.");
         }
     }
 

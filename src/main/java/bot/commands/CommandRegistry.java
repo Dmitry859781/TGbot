@@ -13,6 +13,7 @@ import bot.commands.reminders.EditOnceReminderCommand;
 import bot.commands.reminders.EditRecurringReminderCommand;
 import bot.commands.reminders.RemoveReminderCommand;
 import bot.commands.reminders.ShowReminderCommand;
+import bot.commands.timezone.SetOrEditTimezoneCommand;
 
 public class CommandRegistry {
     private static final Map<String, Command> COMMANDS = new HashMap<>();
@@ -33,6 +34,8 @@ public class CommandRegistry {
         EditRecurringReminderCommand editRecurringReminder = new EditRecurringReminderCommand();
         RemoveReminderCommand removeReminder = new RemoveReminderCommand();
         ShowReminderCommand showReminder = new ShowReminderCommand();
+        //Timezone
+        SetOrEditTimezoneCommand setOrEditTimezone = new SetOrEditTimezoneCommand();
         
         COMMANDS.put(about.getCommandName(), about);
         COMMANDS.put(authors.getCommandName(), authors);
@@ -48,6 +51,8 @@ public class CommandRegistry {
         COMMANDS.put(editRecurringReminder.getCommandName(), editRecurringReminder);
         COMMANDS.put(removeReminder.getCommandName(), removeReminder);
         COMMANDS.put(showReminder.getCommandName(), showReminder);
+        //Timezone
+        COMMANDS.put(setOrEditTimezone.getCommandName(), setOrEditTimezone);
 
         // Help-команда должна быть зарегистрирована ПОСЛЕДНЕЙ, чтобы видеть все команды
         HelpCommand help = new HelpCommand(COMMANDS);

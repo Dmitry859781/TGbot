@@ -1,8 +1,8 @@
 package bot.commands.notes;
 
 import bot.TelegramBot;
-import bot.Note.NoteService;
 import bot.commands.Command;
+import bot.note.NoteService;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 

@@ -1,12 +1,16 @@
 package bot.commands.reminders;
 
 import bot.TelegramBot;
-import bot.Reminder.ReminderService;
 import bot.commands.Command;
+import bot.reminder.ReminderService;
+import bot.timezone.UserTimezoneService;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
@@ -28,11 +32,14 @@ public class AddOnceReminderCommand implements Command {
     }
 
     private final ReminderService reminderService = new ReminderService();
+    private final UserTimezoneService timezoneService = new UserTimezoneService();
+
 
     @Override
     public void execute(TelegramBot bot, Message message, String[] args) {
         Long chatId = message.getChatId();
-
+        ZoneId userZone = getUserZone(bot, chatId);
+		
         bot.sendMessage(chatId, "Введите имя напоминания.");
 
         bot.setPendingInputHandler(chatId, (reminderName) -> {
@@ -43,8 +50,7 @@ public class AddOnceReminderCommand implements Command {
 
             String cleanName = reminderName.trim();
 
-            bot.sendMessage(chatId,
-                "Введите дату и время напоминания в формате:\n" +
+            bot.sendMessage(chatId, "Введите дату и время напоминания в формате:\n" +
                 "dd.MM.yyyy HH:mm\n" +
                 "Например: 26.11.2025 15:30"
             );
@@ -57,7 +63,7 @@ public class AddOnceReminderCommand implements Command {
 
                 LocalDateTime remindAt;
                 try {
-                    // Парсим дату в формате dd.MM.yyyy HH:mm, Locale чисто для галочки
+                    // Парсим дату в формате dd.MM.yyyy HH:mm
                     remindAt = LocalDateTime.parse(
                         dateTimeInput.trim(),
                         java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.ENGLISH)
@@ -83,8 +89,8 @@ public class AddOnceReminderCommand implements Command {
                     }
 
                     try {
-                        // Сохраняем как ONCE-напоминание (в UTC!)
-                        reminderService.addOnceReminder(chatId, cleanName, reminderText.trim(), remindAt);
+						// Сохраняем как ONCE-напоминание (в UTC!)
+                        reminderService.addOnceReminder(chatId, cleanName, reminderText.trim(), remindAt, userZone);
                         bot.sendMessage(chatId,
                             "Напоминание \"" + cleanName + "\" установлено на " +
                             remindAt.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + "!"
@@ -96,5 +102,22 @@ public class AddOnceReminderCommand implements Command {
                 });
             });
         });
+    }
+    //Для использования в лямбдах
+    private ZoneId getUserZone(TelegramBot bot, Long chatId) {
+        try {
+            Integer offsetHours = timezoneService.getTimezone(chatId);
+            if (offsetHours == null) {
+                bot.sendMessage(chatId, "Часовой пояс не указан. Будет использован системный "+ ZoneId.systemDefault() +". \n" + 
+                                "Используйте /setOrEditTimezone для установки или изменения часового пояса");
+                return ZoneId.systemDefault();
+            } else {
+                bot.sendMessage(chatId, "Ваш часовой пояс: " + offsetHours);
+                return ZoneOffset.ofHours(offsetHours);
+            }
+        } catch (SQLException e) {
+            bot.sendMessage(chatId, "Не удалось получить часовой пояс. Будет использован системный " + ZoneId.systemDefault());
+            return ZoneId.systemDefault();
+        }
     }
 }

@@ -1,8 +1,8 @@
 package bot.commands.notes;
 
 import bot.TelegramBot;
-import bot.Note.NoteService;
 import bot.commands.Command;
+import bot.note.NoteService;
 
 import java.sql.SQLException;
 import java.util.List;

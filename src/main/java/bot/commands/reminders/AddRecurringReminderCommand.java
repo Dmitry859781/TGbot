@@ -1,13 +1,16 @@
 package bot.commands.reminders;
 
 import bot.TelegramBot;
-import bot.Reminder.ReminderService;
-import bot.Reminder.recurring.RecurringProperties;
-import bot.Reminder.recurring.ScheduleItem;
 import bot.commands.Command;
+import bot.reminder.ReminderService;
+import bot.reminder.recurring.RecurringProperties;
+import bot.reminder.recurring.ScheduleItem;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class AddRecurringReminderCommand implements Command {
@@ -91,11 +94,15 @@ public class AddRecurringReminderCommand implements Command {
                             return;
                         }
 
-                        String cleanTime = timeInput.trim();
-                        if (!cleanTime.matches("^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+                        String cleanTimeInput = timeInput.trim();
+                        LocalTime time;
+                        try {
+                            time = LocalTime.parse(cleanTimeInput);
+                        } catch (DateTimeParseException e) {
                             bot.sendMessage(chatId, "Неверный формат времени. Используйте: HH:mm (например, 09:00)");
                             return;
                         }
+                        String normalizedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));
 
                         // Формируем объект свойств
                         RecurringProperties props = new RecurringProperties();
@@ -103,7 +110,7 @@ public class AddRecurringReminderCommand implements Command {
                         for (String day : isoDays) {
                             ScheduleItem item = new ScheduleItem();
                             item.day = day;
-                            item.time = cleanTime;
+                            item.time = normalizedTime;
                             props.schedule.add(item);
                         }
 
@@ -113,7 +120,7 @@ public class AddRecurringReminderCommand implements Command {
                             bot.sendMessage(chatId,
                                 "Повторяющееся напоминание \"" + cleanName + "\" создано!\n" +
                                 "Дни: " + daysStr + "\n" +
-                                "Время: " + cleanTime
+                                "Время: " + normalizedTime
                             );
                         } catch (Exception e) {
                             e.printStackTrace();
