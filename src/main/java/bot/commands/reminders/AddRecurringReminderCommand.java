@@ -97,9 +97,9 @@ public class AddRecurringReminderCommand implements Command {
                         String cleanTimeInput = timeInput.trim();
                         LocalTime time;
                         try {
-                            time = LocalTime.parse(cleanTimeInput);
+                            time = LocalTime.parse(cleanTimeInput, DateTimeFormatter.ofPattern("H:mm"));
                         } catch (DateTimeParseException e) {
-                            bot.sendMessage(chatId, "Неверный формат времени. Используйте: HH:mm (например, 09:00)");
+                            bot.sendMessage(chatId, "Неверный формат времени. Примеры: 9:00, 09:00, 15:30");
                             return;
                         }
                         String normalizedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));

@@ -63,10 +63,10 @@ public class AddOnceReminderCommand implements Command {
 
                 LocalDateTime remindAt;
                 try {
-                    // Парсим дату в формате dd.MM.yyyy HH:mm
+                    // Парсим дату в формате dd.MM.yyyy H:mm
                     remindAt = LocalDateTime.parse(
                         dateTimeInput.trim(),
-                        java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.ENGLISH)
+                        java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy H:mm", Locale.ENGLISH)
                     );
                 } catch (DateTimeParseException e) {
                     bot.sendMessage(chatId, "Неверный формат даты. Используйте: dd.MM.yyyy HH:mm\nОперация отменена.");

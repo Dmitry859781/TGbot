@@ -11,6 +11,9 @@ import bot.reminder.recurring.ScheduleItem;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.sql.SQLException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -155,10 +158,9 @@ public class EditRecurringReminderCommand implements Command {
                         	String cleanTimeInput = newTimeInput.trim();
                             String cleanTime;
                             try {
-                                // Нормализуем время: "9:00" → "09:00", "15:5" → "15:05"
-                                java.time.LocalTime time = java.time.LocalTime.parse(cleanTimeInput);
-                                cleanTime = time.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-                            } catch (java.time.format.DateTimeParseException e) {
+                                LocalTime time = LocalTime.parse(cleanTimeInput);
+                                cleanTime = time.format(DateTimeFormatter.ofPattern("H:mm"));
+                            } catch (DateTimeParseException e) {
                                 bot.sendMessage(chatId, "Неверный формат времени. Используйте: HH:mm (например, 09:00)");
                                 return;
                             }

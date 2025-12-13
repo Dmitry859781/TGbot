@@ -121,7 +121,7 @@ public class EditOnceReminderCommand implements Command {
                     } else {
                         try {
                             newTime = LocalDateTime.parse(trimmedInput,
-                                DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.ENGLISH));
+                                DateTimeFormatter.ofPattern("dd.MM.yyyy H:mm", Locale.ENGLISH));
                             if (newTime.isBefore(LocalDateTime.now())) {
                                 bot.sendMessage(chatId, "Нельзя установить напоминание в прошлое. Операция отменена.");
                                 return;
