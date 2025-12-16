@@ -86,7 +86,11 @@ public class AddRecurringReminderCommand implements Command {
                         return;
                     }
 
-                    bot.sendMessage(chatId, "Введите время напоминания в формате HH:mm (24-часовой).\nПример: 09:00");
+                    bot.sendMessage(chatId,
+                            "Введите времена напоминаний через запятую.\n" +
+                            "Количество времён должно совпадать с количеством дней.\n" +
+                            "Формат: H:mm (например, 9:00, 13:30, 15:05)"
+                        );
 
                     bot.setPendingInputHandler(chatId, (timeInput) -> {
                         if (timeInput == null || timeInput.trim().isEmpty()) {
@@ -94,33 +98,47 @@ public class AddRecurringReminderCommand implements Command {
                             return;
                         }
 
-                        String cleanTimeInput = timeInput.trim();
-                        LocalTime time;
-                        try {
-                            time = LocalTime.parse(cleanTimeInput, DateTimeFormatter.ofPattern("H:mm"));
-                        } catch (DateTimeParseException e) {
-                            bot.sendMessage(chatId, "Неверный формат времени. Примеры: 9:00, 09:00, 15:30");
+                        String[] timeParts = timeInput.trim().split(",");
+                        if (timeParts.length != isoDays.size()) {
+                            bot.sendMessage(chatId,
+                                "Количество времён (" + timeParts.length + ") не совпадает с количеством дней (" + isoDays.size() + ").\n" +
+                                "Операция отменена."
+                            );
                             return;
                         }
-                        String normalizedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-                        // Формируем объект свойств
-                        RecurringProperties props = new RecurringProperties();
-                        props.schedule = new ArrayList<>();
-                        for (String day : isoDays) {
-                            ScheduleItem item = new ScheduleItem();
-                            item.day = day;
-                            item.time = normalizedTime;
-                            props.schedule.add(item);
+                        List<String> normalizedTimes = new ArrayList<>();
+                        for (String timeStr : timeParts) {
+                            String cleanTime = timeStr.trim();
+                            LocalTime time;
+                            try {
+                                time = LocalTime.parse(cleanTime, DateTimeFormatter.ofPattern("H:mm"));
+                            } catch (DateTimeParseException e) {
+                                bot.sendMessage(chatId, "Неверный формат времени: " + cleanTime + ".\nПримеры: 9:00, 13:30, 15:05\nОперация отменена.");
+                                return;
+                            }
+                            normalizedTimes.add(time.format(DateTimeFormatter.ofPattern("H:mm")));
                         }
 
+                        RecurringProperties props = new RecurringProperties();
+                        props.schedule = new ArrayList<>();
+                        List<String> sortedDays = new ArrayList<>(isoDays);
+
+                        for (int i = 0; i < sortedDays.size(); i++) {
+                            ScheduleItem item = new ScheduleItem();
+                            item.day = sortedDays.get(i);
+                            item.time = normalizedTimes.get(i);
+                            props.schedule.add(item);
+                        }
+                        
                         try {
                             reminderService.addRecurringReminder(chatId, cleanName, cleanText, props);
                             String daysStr = String.join(", ", isoDays);
+                            String timeStr = String.join(", ", normalizedTimes);
                             bot.sendMessage(chatId,
                                 "Повторяющееся напоминание \"" + cleanName + "\" создано!\n" +
                                 "Дни: " + daysStr + "\n" +
-                                "Время: " + normalizedTime
+                                "Время: " + timeStr
                             );
                         } catch (Exception e) {
                             e.printStackTrace();

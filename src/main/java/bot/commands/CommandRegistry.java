@@ -7,8 +7,10 @@ import bot.commands.notes.AddNoteCommand;
 import bot.commands.notes.EditNoteCommand;
 import bot.commands.notes.RemoveNoteCommand;
 import bot.commands.notes.ShowNoteCommand;
+import bot.commands.reminders.AddDelayedReminderCommand;
 import bot.commands.reminders.AddOnceReminderCommand;
 import bot.commands.reminders.AddRecurringReminderCommand;
+import bot.commands.reminders.EditDelayedReminderCommand;
 import bot.commands.reminders.EditOnceReminderCommand;
 import bot.commands.reminders.EditRecurringReminderCommand;
 import bot.commands.reminders.RemoveReminderCommand;
@@ -30,6 +32,8 @@ public class CommandRegistry {
         //Reminder
         AddOnceReminderCommand addOnceReminder = new AddOnceReminderCommand();
         EditOnceReminderCommand editOnceReminder = new EditOnceReminderCommand();
+        AddDelayedReminderCommand addDelayedReminder = new AddDelayedReminderCommand();
+        EditDelayedReminderCommand editDelayedReminder = new EditDelayedReminderCommand();
         AddRecurringReminderCommand addRecurringReminder = new AddRecurringReminderCommand();
         EditRecurringReminderCommand editRecurringReminder = new EditRecurringReminderCommand();
         RemoveReminderCommand removeReminder = new RemoveReminderCommand();
@@ -45,8 +49,13 @@ public class CommandRegistry {
         COMMANDS.put(editNote.getCommandName(), editNote);
         COMMANDS.put(showNote.getCommandName(), showNote);
         //Reminder
+        //Once
         COMMANDS.put(addOnceReminder.getCommandName(), addOnceReminder);
         COMMANDS.put(editOnceReminder.getCommandName(), editOnceReminder);
+        //Delayed
+        COMMANDS.put(addDelayedReminder.getCommandName(), addDelayedReminder);
+        COMMANDS.put(editDelayedReminder.getCommandName(), editDelayedReminder);
+        //Recurring
         COMMANDS.put(addRecurringReminder.getCommandName(), addRecurringReminder);
         COMMANDS.put(editRecurringReminder.getCommandName(), editRecurringReminder);
         COMMANDS.put(removeReminder.getCommandName(), removeReminder);

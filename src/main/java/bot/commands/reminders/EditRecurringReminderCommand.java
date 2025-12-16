@@ -39,7 +39,7 @@ public class EditRecurringReminderCommand implements Command {
 
     @Override
     public String getCommandName() {
-        return "editRecurring";
+        return "editRecurringReminder";
     }
 
     @Override
@@ -49,7 +49,7 @@ public class EditRecurringReminderCommand implements Command {
 
     @Override
     public String getUsage() {
-        return "/editRecurring";
+        return "/editRecurringReminder";
     }
 
     private final ReminderService reminderService = new ReminderService();
@@ -140,7 +140,7 @@ public class EditRecurringReminderCommand implements Command {
                     }
 
                     bot.sendMessage(chatId,
-                        "Текущее время: " + extractTime(oldProps) + "\n" +
+                        "Текущее время: " + extractTimeList(oldProps) + "\n" +
                         "Введите новое время в формате HH:mm (например: 09:00)\n" +
                         "Или отправьте \"-\", чтобы оставить без изменений."
                     );
@@ -151,20 +151,32 @@ public class EditRecurringReminderCommand implements Command {
                             return;
                         }
 
-                        final String newTime;
+                        List<String> newTimes;
                         if ("-".equals(newTimeInput.trim())) {
-                            newTime = extractTime(oldProps);
+                            newTimes = extractTimeList(oldProps);
                         } else {
-                        	String cleanTimeInput = newTimeInput.trim();
-                            String cleanTime;
-                            try {
-                                LocalTime time = LocalTime.parse(cleanTimeInput);
-                                cleanTime = time.format(DateTimeFormatter.ofPattern("H:mm"));
-                            } catch (DateTimeParseException e) {
-                                bot.sendMessage(chatId, "Неверный формат времени. Используйте: HH:mm (например, 09:00)");
+                        	String[] timeParts = newTimeInput.trim().split(",");
+                            if (timeParts.length != newDays.size()) {
+                                bot.sendMessage(chatId,
+                                    "Количество времён (" + timeParts.length + ") не совпадает с количеством дней (" + newDays.size() + ").\n" +
+                                    "Операция отменена."
+                                );
                                 return;
                             }
-                            newTime = cleanTime;
+
+                            List<String> parsedTimes = new ArrayList<>();
+                            for (String timeStr : timeParts) {
+                                String cleanTime = timeStr.trim();
+                                LocalTime time;
+                                try {
+                                    time = LocalTime.parse(cleanTime, DateTimeFormatter.ofPattern("H:mm"));
+                                } catch (DateTimeParseException e) {
+                                    bot.sendMessage(chatId, "Неверный формат времени: " + cleanTime + ".\nПримеры: 9:00, 13:30, 15:05\nОперация отменена.");
+                                    return;
+                                }
+                                parsedTimes.add(time.format(DateTimeFormatter.ofPattern("H:mm")));
+                            }
+                            newTimes = parsedTimes;
                         }
 
                         bot.sendMessage(chatId,
@@ -188,20 +200,30 @@ public class EditRecurringReminderCommand implements Command {
                             // Собираем новое расписание
                             RecurringProperties newProps = new RecurringProperties();
                             newProps.schedule = new ArrayList<>();
-                            for (String day : newDays) {
+                            List<String> sortedDays = new ArrayList<>(newDays); // чтобы гарантировать порядок
+
+                            for (int i = 0; i < sortedDays.size(); i++) {
                                 ScheduleItem item = new ScheduleItem();
-                                item.day = day;
-                                item.time = newTime;
+                                item.day = sortedDays.get(i);
+                                item.time = newTimes.get(i);
                                 newProps.schedule.add(item);
                             }
 
                             try {
                                 reminderService.removeReminder(chatId, reminderName);
                                 reminderService.addRecurringReminder(chatId, reminderName, newText, newProps);
-                                bot.sendMessage(chatId, "Напоминание \"" + reminderName + "\" обновлено!");
+                                StringBuilder scheduleStr = new StringBuilder();
+                                for (int i = 0; i < sortedDays.size(); i++) {
+                                    if (i > 0) scheduleStr.append(", ");
+                                    scheduleStr.append(formatDay(sortedDays.get(i))).append(" в ").append(newTimes.get(i));
+                                }
+                                bot.sendMessage(chatId,
+                                    "✅ Напоминание \"" + reminderName + "\" обновлено!\n" +
+                                    "Расписание: " + scheduleStr
+                                );
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                bot.sendMessage(chatId, "Ошибка при обновлении напоминания.");
+                                bot.sendMessage(chatId, "❌ Ошибка при обновлении напоминания.");
                             }
                         });
                     });
@@ -235,11 +257,13 @@ public class EditRecurringReminderCommand implements Command {
         return days;
     }
 
-    private String extractTime(RecurringProperties props) {
-        if (props.schedule != null && !props.schedule.isEmpty()) {
-            return props.schedule.get(0).time; // предполагаем, что время одинаковое для всех
+    private List<String> extractTimeList(RecurringProperties props) {
+        if (props.schedule == null || props.schedule.isEmpty()) {
+            return Collections.singletonList("09:00");
         }
-        return "09:00";
+        return props.schedule.stream()
+            .map(item -> item.time)
+            .collect(Collectors.toList());
     }
 
     private Set<String> parseDays(String input) {
