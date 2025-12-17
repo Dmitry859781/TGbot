@@ -21,6 +21,6 @@ public class AboutCommand implements Command {
 
     @Override
     public void execute(TelegramBot bot, Message message, String[] args) {
-    	bot.sendMessage(message.getChatId(), "Это бот для заметок. Версия 0.1.");
+    	bot.sendMessage(message.getChatId(), "Это бот для заметок. Версия 4.1.");
     }
 }

@@ -12,6 +12,7 @@ import bot.commands.InputHandler;
 import bot.reminder.Reminder;
 import bot.reminder.ReminderService;
 import bot.reminder.ReminderType;
+import bot.reminder.once.OnceProperties;
 import bot.commands.CommandRegistry;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -101,10 +102,16 @@ public class TelegramBot extends TelegramLongPollingBot {
                     .chatId(reminder.getUserId().toString())
                     .text(message)
                     .build());
-
-                // Если ONCE — удаляем после отправки
                 if (ReminderType.ONCE.equals(reminder.getType())) {
-                    reminderService.removeReminder(reminder.getUserId(), reminder.getName());
+                	OnceProperties props = reminder.getPropertiesAs(OnceProperties.class);
+                    if (props.deleteAfterSend != null && props.deleteAfterSend) {
+                        // Удаляем
+                        reminderService.removeReminder(reminder.getUserId(), reminder.getReminderName());
+                    } else {
+                        // Отключаем
+                        props.enabled = false;
+                        reminderService.updateReminderProperties(reminder.getUserId(), reminder.getReminderName(), props);
+                    }
                 }
             }
         } catch (Exception e) {

@@ -149,16 +149,41 @@ public class EditOnceReminderCommand implements Command {
                             bot.sendMessage(chatId, "Текст не может быть пустым. Операция отменена.");
                             return;
                         }
+                        String currentDeleteStr = oldProps.deleteAfterSend != null && oldProps.deleteAfterSend ? "Да" : "Нет";
+                        bot.sendMessage(chatId,
+                            "Текущее поведение: " + currentDeleteStr + "\n" +
+                            "Удалить напоминание после срабатывания?\n" +
+                            "Ответьте: Да или Нет"
+                        );
 
-                        try {
-                            reminderService.removeReminder(chatId, reminderName);
-                            LocalDateTime finalTime = (newTime != null) ? newTime : oldTime;
-                            reminderService.addOnceReminder(chatId, reminderName, newText, finalTime, userZone);
-                            bot.sendMessage(chatId, "Напоминание \"" + reminderName + "\" обновлено!");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            bot.sendMessage(chatId, "Ошибка при обновлении напоминания.");
-                        }
+                        bot.setPendingInputHandler(chatId, (deleteInput) -> {
+                            if (deleteInput == null) {
+                                bot.sendMessage(chatId, "Операция отменена.");
+                                return;
+                            }
+
+                            String deleteStr = deleteInput.trim().toLowerCase();
+                            Boolean newDeleteAfterSend;
+
+                            if ("да".equals(deleteStr) || "yes".equals(deleteStr)) {
+                                newDeleteAfterSend = true;
+                            } else if ("нет".equals(deleteStr) || "no".equals(deleteStr)) {
+                                newDeleteAfterSend = false;
+                            } else {
+                                bot.sendMessage(chatId, "Неверный ответ. Ожидается: Да или Нет / Yes или No. Операция отменена.");
+                                return;
+                            }
+
+	                        try {
+	                            reminderService.removeReminder(chatId, reminderName);
+	                            LocalDateTime finalTime = (newTime != null) ? newTime : oldTime;
+	                            reminderService.addOnceReminder(chatId, reminderName, newText, finalTime, userZone, newDeleteAfterSend);
+	                            bot.sendMessage(chatId, "Напоминание \"" + reminderName + "\" обновлено!");
+	                        } catch (Exception e) {
+	                            e.printStackTrace();
+	                            bot.sendMessage(chatId, "Ошибка при обновлении напоминания.");
+	                        }
+                        });
                     });
                 });
             });

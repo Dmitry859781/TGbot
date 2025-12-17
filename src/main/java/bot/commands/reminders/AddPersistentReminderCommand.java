@@ -1,12 +1,5 @@
 package bot.commands.reminders;
 
-import bot.TelegramBot;
-import bot.commands.Command;
-import bot.reminder.ReminderService;
-import bot.timezone.UserTimezoneService;
-
-import org.telegram.telegrambots.meta.api.objects.Message;
-
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -14,21 +7,28 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
-public class AddOnceReminderCommand implements Command {
+import org.telegram.telegrambots.meta.api.objects.Message;
 
+import bot.TelegramBot;
+import bot.commands.Command;
+import bot.reminder.ReminderService;
+import bot.timezone.UserTimezoneService;
+
+public class AddPersistentReminderCommand implements Command {
+	
     @Override
     public String getCommandName() {
-        return "addOnceReminder";
+        return "addPersistentReminder";
     }
 
     @Override
     public String getDescription() {
-        return "Добавить однократное напоминание";
+        return "Добавить неудаляемое однократное напоминание";
     }
 
     @Override
     public String getUsage() {
-        return "/addOnceReminder";
+        return "/addPersistentReminder";
     }
 
     private final ReminderService reminderService = new ReminderService();
@@ -89,8 +89,7 @@ public class AddOnceReminderCommand implements Command {
                     }
 
                     try {
-						// Сохраняем как ONCE-напоминание (в UTC!)
-                        reminderService.addOnceReminder(chatId, cleanName, reminderText.trim(), remindAt, userZone, true);
+                        reminderService.addOnceReminder(chatId, cleanName, reminderText.trim(), remindAt, userZone, false);
                         bot.sendMessage(chatId,
                             "Напоминание \"" + cleanName + "\" установлено на " +
                             remindAt.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + "!"

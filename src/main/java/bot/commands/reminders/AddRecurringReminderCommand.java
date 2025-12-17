@@ -130,7 +130,6 @@ public class AddRecurringReminderCommand implements Command {
                             item.time = normalizedTimes.get(i);
                             props.schedule.add(item);
                         }
-                        
                         try {
                             reminderService.addRecurringReminder(chatId, cleanName, cleanText, props);
                             String daysStr = String.join(", ", isoDays);

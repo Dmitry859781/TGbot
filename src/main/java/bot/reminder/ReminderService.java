@@ -63,16 +63,23 @@ public class ReminderService {
         }
     }
 
-    public void addOnceReminder(Long userId, String reminderName, String text, LocalDateTime remindAt, ZoneId userZone) {
+    public void addOnceReminder(Long userId, String reminderName, String text, LocalDateTime remindAt, 
+    		ZoneId userZone, boolean deleteAfterSend) {
         OnceProperties props = new OnceProperties();
         LocalDateTime utcTime = remindAt.atZone(userZone)
                                     .withZoneSameInstant(ZoneOffset.UTC)
                                     .toLocalDateTime();
         props.remind_at = utcTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        props.deleteAfterSend = deleteAfterSend;
+        props.group = "";
+        props.enabled = true;
         addReminder(userId, reminderName, text, ReminderType.ONCE, props);
     }
 
-    public void addRecurringReminder(Long userId, String reminderName, String text, RecurringProperties props) {
+    public void addRecurringReminder(Long userId, String reminderName, String text, 
+    		RecurringProperties props) {
+    	props.group = "";
+    	props.enabled = true;
         addReminder(userId, reminderName, text, ReminderType.RECURRING, props);
     }
 
@@ -173,7 +180,11 @@ public class ReminderService {
                     LocalDateTime nowLocal = LocalDateTime.ofInstant(nowInstant, userZone);
                     String todayIso = nowLocal.getDayOfWeek().toString();
                     String timeNow = nowLocal.format(DateTimeFormatter.ofPattern("HH:mm"));
-
+                    
+                    if (!reminder.isEnabled()) {
+                        continue;
+                    }
+                    
                     boolean shouldNotify = false;
 
                     if (ReminderType.ONCE.equals(reminder.getType())) {
@@ -206,7 +217,50 @@ public class ReminderService {
         }
         return dueReminders;
     }
-
+    
+    public void updateReminderProperties(Long userId, String reminderName, Object newProperties) throws SQLException {
+        String json = GSON.toJson(newProperties);
+        String sql = "UPDATE reminders SET properties = ? WHERE user_id = ? AND reminder_name = ?";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, json);
+            stmt.setLong(2, userId);
+            stmt.setString(3, reminderName);
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                throw new SQLException("Напоминание не найдено");
+            }
+        }
+    }
+    
+    public List<String> getUserGroups(Long userId) throws SQLException {
+        String sql = """
+            SELECT DISTINCT properties FROM reminders WHERE user_id = ?
+            """;
+        Set<String> groups = new HashSet<>();
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String json = rs.getString("properties");
+                    if (json != null) {
+                        if (json.contains("remind_at")) {
+                            OnceProperties props = GSON.fromJson(json, OnceProperties.class);
+                            groups.add(props.group != null ? props.group : "");
+                        } else {
+                            RecurringProperties props = GSON.fromJson(json, RecurringProperties.class);
+                            groups.add(props.group != null ? props.group : "");
+                        }
+                    }
+                }
+            }
+        }
+        List<String> list = new ArrayList<>(groups);
+        Collections.sort(list); // чтобы порядок был
+        return list;
+    }
+    
     public static <T> T parseProperties(String json, Class<T> clazz) {
         return GSON.fromJson(json, clazz);
     }

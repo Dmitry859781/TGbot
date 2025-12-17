@@ -9,12 +9,22 @@ import bot.commands.notes.RemoveNoteCommand;
 import bot.commands.notes.ShowNoteCommand;
 import bot.commands.reminders.AddDelayedReminderCommand;
 import bot.commands.reminders.AddOnceReminderCommand;
+import bot.commands.reminders.AddPersistentReminderCommand;
 import bot.commands.reminders.AddRecurringReminderCommand;
 import bot.commands.reminders.EditDelayedReminderCommand;
 import bot.commands.reminders.EditOnceReminderCommand;
 import bot.commands.reminders.EditRecurringReminderCommand;
+import bot.commands.reminders.ExportReminderCommand;
+import bot.commands.reminders.ImportReminderCommand;
 import bot.commands.reminders.RemoveReminderCommand;
 import bot.commands.reminders.ShowReminderCommand;
+import bot.commands.reminders.group.AddGroupCommand;
+import bot.commands.reminders.group.AddToGroupCommand;
+import bot.commands.reminders.group.DisableGroupCommand;
+import bot.commands.reminders.group.EnableGroupCommand;
+import bot.commands.reminders.group.ListGroupsCommand;
+import bot.commands.reminders.group.RemoveFromGroupCommand;
+import bot.commands.reminders.group.ShowGroupCommand;
 import bot.commands.timezone.SetOrEditTimezoneCommand;
 
 public class CommandRegistry {
@@ -33,6 +43,7 @@ public class CommandRegistry {
         AddOnceReminderCommand addOnceReminder = new AddOnceReminderCommand();
         EditOnceReminderCommand editOnceReminder = new EditOnceReminderCommand();
         AddDelayedReminderCommand addDelayedReminder = new AddDelayedReminderCommand();
+        AddPersistentReminderCommand addPersistentReminder = new AddPersistentReminderCommand();
         EditDelayedReminderCommand editDelayedReminder = new EditDelayedReminderCommand();
         AddRecurringReminderCommand addRecurringReminder = new AddRecurringReminderCommand();
         EditRecurringReminderCommand editRecurringReminder = new EditRecurringReminderCommand();
@@ -40,6 +51,18 @@ public class CommandRegistry {
         ShowReminderCommand showReminder = new ShowReminderCommand();
         //Timezone
         SetOrEditTimezoneCommand setOrEditTimezone = new SetOrEditTimezoneCommand();
+        //Import/Export
+        ImportReminderCommand importReminder = new ImportReminderCommand();
+        ExportReminderCommand exportReminder = new ExportReminderCommand();
+        //Group
+        AddGroupCommand addGroup = new AddGroupCommand();
+        AddToGroupCommand addToGroup = new AddToGroupCommand();
+        DisableGroupCommand disableGroup = new DisableGroupCommand();
+        EnableGroupCommand enableGroup = new EnableGroupCommand();
+        ListGroupsCommand listGroups = new ListGroupsCommand();
+        RemoveFromGroupCommand removeFromGroup = new RemoveFromGroupCommand();
+        ShowGroupCommand showGroup = new ShowGroupCommand();
+        
         
         COMMANDS.put(about.getCommandName(), about);
         COMMANDS.put(authors.getCommandName(), authors);
@@ -52,6 +75,8 @@ public class CommandRegistry {
         //Once
         COMMANDS.put(addOnceReminder.getCommandName(), addOnceReminder);
         COMMANDS.put(editOnceReminder.getCommandName(), editOnceReminder);
+        //Persistent
+        COMMANDS.put(addPersistentReminder.getCommandName(), addPersistentReminder);
         //Delayed
         COMMANDS.put(addDelayedReminder.getCommandName(), addDelayedReminder);
         COMMANDS.put(editDelayedReminder.getCommandName(), editDelayedReminder);
@@ -62,6 +87,17 @@ public class CommandRegistry {
         COMMANDS.put(showReminder.getCommandName(), showReminder);
         //Timezone
         COMMANDS.put(setOrEditTimezone.getCommandName(), setOrEditTimezone);
+        //Import/Export
+        COMMANDS.put(importReminder.getCommandName(), importReminder);
+        COMMANDS.put(exportReminder.getCommandName(), exportReminder);
+        //Group
+        COMMANDS.put(addGroup.getCommandName(), addGroup);
+        COMMANDS.put(addToGroup.getCommandName(), addToGroup);
+        COMMANDS.put(disableGroup.getCommandName(), disableGroup);
+        COMMANDS.put(enableGroup.getCommandName(), enableGroup);
+        COMMANDS.put(listGroups.getCommandName(), listGroups);
+        COMMANDS.put(removeFromGroup.getCommandName(), removeFromGroup);
+        COMMANDS.put(showGroup.getCommandName(), showGroup);
 
         // Help-команда должна быть зарегистрирована ПОСЛЕДНЕЙ, чтобы видеть все команды
         HelpCommand help = new HelpCommand(COMMANDS);

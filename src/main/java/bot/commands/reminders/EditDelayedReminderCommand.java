@@ -179,7 +179,7 @@ public class EditDelayedReminderCommand implements Command {
 
                             try {
                                 reminderService.removeReminder(chatId, reminderName);
-                                reminderService.addOnceReminder(chatId, newReminderName, newText, newTime, userZone);
+                                reminderService.addOnceReminder(chatId, newReminderName, newText, newTime, userZone, true);
                                 bot.sendMessage(chatId,
                                     "Напоминание \"" + newReminderName + "\" обновлено!\n" +
                                     "Новое время: " + newTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))

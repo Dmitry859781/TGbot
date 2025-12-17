@@ -218,12 +218,12 @@ public class EditRecurringReminderCommand implements Command {
                                     scheduleStr.append(formatDay(sortedDays.get(i))).append(" в ").append(newTimes.get(i));
                                 }
                                 bot.sendMessage(chatId,
-                                    "✅ Напоминание \"" + reminderName + "\" обновлено!\n" +
+                                    "Напоминание \"" + reminderName + "\" обновлено!\n" +
                                     "Расписание: " + scheduleStr
                                 );
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                bot.sendMessage(chatId, "❌ Ошибка при обновлении напоминания.");
+                                bot.sendMessage(chatId, "Ошибка при обновлении напоминания.");
                             }
                         });
                     });

@@ -81,7 +81,7 @@ public class AddDelayedReminderCommand implements Command {
 
                     try {
 						// Сохраняем как ONCE-напоминание (в UTC!)
-                        reminderService.addOnceReminder(chatId, cleanName, reminderText.trim(), remindAt, userZone);
+                        reminderService.addOnceReminder(chatId, cleanName, reminderText.trim(), remindAt, userZone, true);
                         bot.sendMessage(chatId,
                             "Напоминание \"" + cleanName + "\" установлено на " +
                             remindAt.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + "!"
